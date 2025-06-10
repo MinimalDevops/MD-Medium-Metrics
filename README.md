@@ -2,6 +2,8 @@
 
 This project scrapes your Medium stats (total views, reads, and earnings) using Puppeteer and saves them to a Supabase Postgres table. It is designed for personal use and can be visualized in Grafana.
 
+Read the blog here -> How to Automatically Track Your Medium Stats for Your Portfolio (No API Needed!)
+
 ## Features
 - Scrapes total views, reads, and earnings from your Medium stats page
 - Uses your real Chrome session for authentication (no need to manage cookies)
@@ -144,14 +146,23 @@ Add your Supabase/Postgres database as a data source in Grafana. Use these examp
 
 ### Views & Reads (Bar or Stat Panel)
 ```sql
-SELECT 'Views' AS metric, total_views AS value FROM medium_metrics
-UNION ALL
-SELECT 'Reads' AS metric, total_reads AS value FROM medium_metrics;
+  SELECT
+    'Views' AS metric,
+    total_views AS value
+  FROM medium_metrics
+  UNION ALL
+  SELECT
+    'Reads' AS metric,
+    total_reads AS value
+  FROM medium_metrics;
 ```
 
 ### Earnings (Pie Chart)
 ```sql
-SELECT 'Earnings' AS label, total_earning AS value FROM medium_metrics;
+  SELECT
+    'Earnings' AS Total,
+    total_earning AS "USD"
+  FROM medium_metrics;
 ```
 - Set the field unit to `Currency > USD ($)` in Grafana for proper formatting.
 
@@ -160,5 +171,7 @@ SELECT 'Earnings' AS label, total_earning AS value FROM medium_metrics;
 - For historical tracking, you can remove the delete step in `scraper.js`.
 - This project is for personal use. Respect Medium's terms of service.
 
+
 ## License
-MIT 
+
+This project is licensed under the [MIT License](LICENSE). You are free to use, modify, and distribute it as you wish.
