@@ -2,7 +2,7 @@
 
 This project scrapes your Medium stats (total views, reads, and earnings) using Puppeteer and saves them to a Supabase Postgres table. It is designed for personal use and can be visualized in Grafana.
 
-Read the blog here -> How to Automatically Track Your Medium Stats for Your Portfolio (No API Needed!)
+Read the blog here -> [How to Automatically Track Your Medium Stats for Your Portfolio (No API Needed!)](https://minimaldevops.com/how-to-automatically-track-your-medium-stats-for-your-portfolio-no-api-needed-0cae10ed8796)
 
 ## Features
 - Scrapes total views, reads, and earnings from your Medium stats page
