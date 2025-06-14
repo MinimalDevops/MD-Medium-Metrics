@@ -5,3 +5,4 @@ node_modules/
 # Puppeteer/Chrome user data
 /chrome-profiles/automation/
 /ChromeDebug/ 
+run_medium_scraper-local.sh

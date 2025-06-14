@@ -12,8 +12,13 @@ if ! lsof -i:9223 >/dev/null; then
     --no-first-run \
     --no-default-browser-check \
     --disable-popup-blocking > /dev/null 2>&1 &
-  # Wait a few seconds for Chrome to start
-  sleep 5
+  # Wait for Chrome to start (up to 30 seconds)
+  for i in {1..30}; do
+    if lsof -i:9223 >/dev/null; then
+      break
+    fi
+    sleep 1
+  done
 fi
 
 # Change to the project directory
