@@ -116,7 +116,7 @@ chmod +x run_medium_scraper.sh
 To run the scraper every day at 7AM, add this to your crontab:
 
 ```sh
-0 7 * * * /PATH/medium-metrics/run_medium_scraper.sh
+0 7 * * * cd /PATH/medium-metrics && /PATH/medium-metrics/run_medium_scraper.sh
 ```
 
 - This will start Chrome (if not already running) and run the scraper at 7AM daily.
