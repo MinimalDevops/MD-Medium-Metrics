@@ -7,7 +7,8 @@ Read the blog here -> [How to Automatically Track Your Medium Stats for Your Por
 ## Features
 - Scrapes total views, reads, and earnings from your Medium stats page
 - Uses your real Chrome session for authentication (no need to manage cookies)
-- Saves the latest metrics to a Supabase table (always one row)
+- Saves the latest metrics to a Supabase PostgreSQL table (always one row)
+- Direct PostgreSQL connection for better performance and reliability
 - Ready for Grafana dashboards (see example queries below)
 
 ## Prerequisites
@@ -32,8 +33,16 @@ To use this project locally:
 
 3. **Create a `.env` file** with your Supabase credentials:
    ```sh
-   SUPABASE_URL=your_supabase_url
-   SUPABASE_ANON_KEY=your_supabase_anon_key
+   # Supabase direct PostgreSQL connection (recommended)
+   SUPABASE_HOST=your_supabase_host
+   SUPABASE_DB=postgres
+   SUPABASE_USER=your_supabase_user
+   SUPABASE_PASSWORD=your_supabase_password
+   SUPABASE_PORT=5432
+   
+   # Alternative: Supabase URL and anon key (legacy method)
+   # SUPABASE_URL=your_supabase_url
+   # SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
 
 4. **Prepare your Chrome profile:**
@@ -169,6 +178,8 @@ Add your Supabase/Postgres database as a data source in Grafana. Use these examp
 ## Notes
 - Only the latest stats are kept in the table (one row).
 - For historical tracking, you can remove the delete step in `scraper.js`.
+- The scraper now uses direct PostgreSQL connection for better performance.
+- Updated selectors to work with Medium's current UI structure.
 - This project is for personal use. Respect Medium's terms of service.
 
 
