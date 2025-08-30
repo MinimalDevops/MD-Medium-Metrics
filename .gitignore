@@ -6,3 +6,4 @@ node_modules/
 /chrome-profiles/automation/
 /ChromeDebug/ 
 run_medium_scraper-local.sh
+scraper-debug.js
