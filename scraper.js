@@ -70,224 +70,151 @@ async function autoScroll(page) {
       return isNaN(numericValue) ? 0 : numericValue;
     }
     
-    // Enhanced approach: Look for more specific patterns to distinguish views vs reads
+    // Updated approach based on current Medium DOM structure
+    console.log("=== EXTRACTING MEDIUM STATS WITH UPDATED SELECTORS ===");
     
-    // Method 1: Look for all elements with numbers and try to identify the pattern
-    const allElements = document.querySelectorAll('*');
-    const numberElements = Array.from(allElements).filter(el => {
-      const text = el.innerText || el.textContent || '';
-      return /^\d+$/.test(text.trim()) && text.length < 10;
-    });
+    // Method 1: Find the table structure
+    const table = document.querySelector('table');
+    console.log(`Table found: ${!!table}`);
     
-    console.log(`Found ${numberElements.length} elements with numbers`);
-    
-    // Method 2: Look for elements with specific patterns
-    const viewElements = Array.from(allElements).filter(el => {
-      const text = el.innerText || el.textContent || '';
-      return text.toLowerCase().includes('view') && /\d/.test(text);
-    });
-    
-    const readElements = Array.from(allElements).filter(el => {
-      const text = el.innerText || el.textContent || '';
-      return text.toLowerCase().includes('read') && /\d/.test(text);
-    });
-    
-    const earningElements = Array.from(allElements).filter(el => {
-      const text = el.innerText || el.textContent || '';
-      // Look for dollar amounts that are likely earnings (small amounts like $0.00, $0.06, etc.)
-      return /\$\d+\.?\d*/.test(text) && text.length < 20; // Limit length to avoid picking up other numbers
-    });
-    
-    console.log(`View elements: ${viewElements.length}, Read elements: ${readElements.length}, Earning elements: ${earningElements.length}`);
-    
-    // Method 3: Try to find the table structure and extract data by position
-    // Look for common table selectors
-    const tableSelectors = [
-      'table',
-      '[role="table"]',
-      '[role="grid"]',
-      '.table',
-      '[class*="table"]',
-      '[class*="grid"]',
-      '[class*="list"]',
-      '[data-testid*="table"]'
-    ];
-    
-    let tableElement = null;
-    for (const selector of tableSelectors) {
-      const element = document.querySelector(selector);
-      if (element) {
-        tableElement = element;
-        console.log(`Found table with selector: ${selector}`);
-        break;
-      }
-    }
-    
-    // Method 4: Extract numbers from the page and try to identify the pattern
-    const extractedNumbers = numberElements.map(el => ({
-      number: parseInt(el.innerText),
-      element: el,
-      parentText: el.parentElement?.innerText || '',
-      parentClassName: (el.parentElement?.className || '').toString()
-    })).filter(item => !isNaN(item.number));
-    
-    console.log(`Extracted numbers: ${extractedNumbers.map(n => n.number).join(', ')}`);
-    
-    // Method 5: Try to find the correct selectors by looking at the parent structure
-    const statsContainers = Array.from(allElements).filter(el => {
-      const text = el.innerText || el.textContent || '';
-      return text.includes('Views') || text.includes('Reads') || text.includes('Earnings');
-    });
-    
-    console.log(`Stats containers found: ${statsContainers.length}`);
-    
-    // Method 6: Try to identify the column structure
-    // Look for elements that might be in a grid or table layout
-    const gridElements = Array.from(allElements).filter(el => {
-      const style = window.getComputedStyle(el);
-      const className = (el.className || '').toString();
-      return style.display === 'grid' || style.display === 'flex' || 
-             className.includes('grid') || className.includes('flex') ||
-             el.getAttribute('role') === 'grid' || el.getAttribute('role') === 'table';
-    });
-    
-    console.log(`Grid/table elements found: ${gridElements.length}`);
-    
-    // Method 7: Try to find the specific numbers from the screenshot
-    // Based on the screenshot, we see numbers like 23, 30, 43, 19, 25, 336, 206
-    const specificNumbers = ['23', '30', '43', '19', '25', '336', '206'];
-    const foundSpecificNumbers = [];
-    
-    specificNumbers.forEach(num => {
-      const elements = Array.from(allElements).filter(el => {
-        const text = el.innerText || el.textContent || '';
-        return text.trim() === num;
-      });
-      
-      if (elements.length > 0) {
-        foundSpecificNumbers.push({
-          number: num,
-          elements: elements.map(el => ({
-            tagName: el.tagName,
-            className: (el.className || '').toString(),
-            parentTagName: el.parentElement?.tagName,
-            parentClassName: (el.parentElement?.className || '').toString(),
-            parentText: el.parentElement?.innerText?.substring(0, 100) || ''
-          }))
-        });
-      }
-    });
-    
-    console.log(`Found specific numbers: ${foundSpecificNumbers.length}`);
-    
-    // Method 8: Try to identify the correct structure by looking at the context
-    // Look for elements that contain both numbers and text that might indicate the column
-    const contextualElements = Array.from(allElements).filter(el => {
-      const text = el.innerText || el.textContent || '';
-      const hasNumber = /\d/.test(text);
-      const hasText = /[a-zA-Z]/.test(text);
-      return hasNumber && hasText && text.length < 200;
-    });
-    
-    console.log(`Contextual elements found: ${contextualElements.length}`);
-    
-    // Method 9: Try to find the actual column structure
-    // Look for elements that might be in a row/column layout
-    const rowElements = Array.from(allElements).filter(el => {
-      const style = window.getComputedStyle(el);
-      const className = (el.className || '').toString();
-      return style.display === 'flex' || style.flexDirection === 'row' || 
-             className.includes('row') || className.includes('flex');
-    });
-    
-    console.log(`Row elements found: ${rowElements.length}`);
-    
-    // Method 10: Try to extract data by looking for the actual structure
-    // Based on the screenshot, we need to find the correct column positions
     let totalViews = 0;
     let totalReads = 0;
     let totalEarning = 0;
     
-    // Try to find the actual table structure and extract by column position
-    if (tableElement) {
-      // If we found a table, try to extract by column position
-      const rows = tableElement.querySelectorAll('tr');
+    if (table) {
+      // Extract data from table rows
+      const rows = table.querySelectorAll('tr');
       console.log(`Found ${rows.length} table rows`);
       
-      rows.forEach((row, rowIndex) => {
-        const cells = row.querySelectorAll('td, th');
-        if (cells.length >= 5) { // Should have at least 5 columns: Published, Story, Views, Reads, Earnings
-          const viewCell = cells[2]; // 3rd column (Views)
-          const readCell = cells[3]; // 4th column (Reads)
-          const earningCell = cells[4]; // 5th column (Earnings)
+      // Skip header row and process data rows
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const cells = row.querySelectorAll('td');
+        
+        if (cells.length >= 3) {
+          // Based on debug analysis, find all spans with numbers in this row
+          const numberSpans = row.querySelectorAll('span.bf.b.md.mf.bk');
+          console.log(`Row ${i}: Found ${numberSpans.length} number spans`);
           
-          if (viewCell) {
-            const viewText = viewCell.innerText || viewCell.textContent || '';
-            const viewNum = toNumber(viewText);
-            if (viewNum > 0) totalViews += viewNum;
-          }
-          
-          if (readCell) {
-            const readText = readCell.innerText || readCell.textContent || '';
-            const readNum = toNumber(readText);
-            if (readNum > 0) totalReads += readNum;
-          }
-          
-          if (earningCell) {
-            const earningText = earningCell.innerText || earningCell.textContent || '';
-            const earningMatch = earningText.match(/\$(\d+\.?\d*)/);
-            if (earningMatch) {
-              const earningNum = parseFloat(earningMatch[1]);
-              if (earningNum > 0) totalEarning += earningNum;
+          // Process each span with a number
+          numberSpans.forEach((span, spanIndex) => {
+            const text = span.innerText || span.textContent || '';
+            const num = toNumber(text);
+            
+            if (num > 0) {
+              // Determine if this is views or reads based on position in the row
+              const parentCell = span.closest('td');
+              if (parentCell) {
+                const cellIndex = Array.from(parentCell.parentElement.children).indexOf(parentCell);
+                
+                // Based on debug analysis, the structure appears to be:
+                // Column 0: Story title
+                // Column 1: Views (first number span)
+                // Column 2: Reads (second number span)
+                // Column 3: Earnings (if exists)
+                
+                if (spanIndex === 0) { // First number span in row = Views
+                  totalViews += num;
+                  console.log(`Row ${i}: Views = ${num} (span ${spanIndex}, cell ${cellIndex})`);
+                } else if (spanIndex === 1) { // Second number span in row = Reads
+                  totalReads += num;
+                  console.log(`Row ${i}: Reads = ${num} (span ${spanIndex}, cell ${cellIndex})`);
+                }
+              }
             }
+          });
+          
+          // Extract earnings from the entire row text
+          const rowText = row.innerText || row.textContent || '';
+          const earningMatches = rowText.match(/\$(\d+\.?\d*)/g);
+          if (earningMatches) {
+            earningMatches.forEach(match => {
+              const amount = parseFloat(match.replace('$', ''));
+              if (amount > 0 && amount < 100) {
+                totalEarning += amount;
+                console.log(`Row ${i}: Earnings = $${amount}`);
+              }
+            });
           }
         }
-      });
-    } else {
-      // Fallback: use the specific numbers we found from the screenshot
-      if (foundSpecificNumbers.length > 0) {
-        console.log("Using specific numbers as reference");
-        const specificNumberValues = foundSpecificNumbers.map(item => parseInt(item.number));
-        totalViews = specificNumberValues.reduce((sum, num) => sum + num, 0);
-        totalReads = specificNumberValues.reduce((sum, num) => sum + num, 0);
-      } else {
-        // Last resort: use all numbers but try to be more selective
-        console.log("Using all numbers as fallback");
-        const allNumbers = extractedNumbers.map(n => n.number);
-        totalViews = allNumbers.reduce((sum, num) => sum + num, 0);
-        totalReads = allNumbers.reduce((sum, num) => sum + num, 0);
       }
-    }
-    
-    // Extract earnings from dollar amounts - be more selective
-    const dollarAmounts = earningElements.map(el => {
-      const text = el.innerText || el.textContent || '';
-      const match = text.match(/\$(\d+\.?\d*)/);
-      const amount = match ? parseFloat(match[1]) : 0;
-      // Only include small amounts that are likely earnings (not large numbers)
-      return amount > 0 && amount < 100 ? amount : 0;
-    });
-    
-    // If we didn't find earnings from table structure, use the dollar amounts
-    if (totalEarning === 0) {
+    } else {
+      // Fallback: Look for all spans with the specific class
+      console.log("Table not found, using fallback selectors");
+      
+      const allSpans = document.querySelectorAll('span.bf.b.md.mf.bk');
+      console.log(`Found ${allSpans.length} spans with numbers`);
+      
+      // Group spans by their parent rows
+      const spanGroups = [];
+      let currentGroup = [];
+      let lastParentRow = null;
+      
+      allSpans.forEach(span => {
+        const parentRow = span.closest('tr');
+        if (parentRow !== lastParentRow) {
+          if (currentGroup.length > 0) {
+            spanGroups.push(currentGroup);
+          }
+          currentGroup = [span];
+          lastParentRow = parentRow;
+        } else {
+          currentGroup.push(span);
+        }
+      });
+      
+      if (currentGroup.length > 0) {
+        spanGroups.push(currentGroup);
+      }
+      
+      console.log(`Grouped into ${spanGroups.length} rows`);
+      
+      // Process each group (row)
+      spanGroups.forEach((group, groupIndex) => {
+        group.forEach((span, spanIndex) => {
+          const text = span.innerText || span.textContent || '';
+          const num = toNumber(text);
+          
+          if (num > 0) {
+            if (spanIndex === 0) { // First span = Views
+              totalViews += num;
+              console.log(`Group ${groupIndex}: Views = ${num} (span ${spanIndex})`);
+            } else if (spanIndex === 1) { // Second span = Reads
+              totalReads += num;
+              console.log(`Group ${groupIndex}: Reads = ${num} (span ${spanIndex})`);
+            }
+          }
+        });
+      });
+      
+      // Look for earnings
+      const allElements = document.querySelectorAll('*');
+      const earningElements = Array.from(allElements).filter(el => {
+        const text = el.innerText || el.textContent || '';
+        return /\$\d+\.?\d*/.test(text) && text.length < 20;
+      });
+      
+      const dollarAmounts = earningElements.map(el => {
+        const text = el.innerText || el.textContent || '';
+        const match = text.match(/\$(\d+\.?\d*)/);
+        const amount = match ? parseFloat(match[1]) : 0;
+        return amount > 0 && amount < 100 ? amount : 0;
+      });
+      
       totalEarning = dollarAmounts.reduce((sum, amount) => sum + amount, 0);
+      console.log(`Found dollar amounts: ${dollarAmounts.filter(a => a > 0).join(', ')}`);
     }
     
-    console.log(`Found dollar amounts: ${dollarAmounts.filter(a => a > 0).join(', ')}`);
-    
-    console.log(`Calculated totals - Views: ${totalViews}, Reads: ${totalReads}, Earnings: ${totalEarning}`);
+    console.log(`Final totals - Views: ${totalViews}, Reads: ${totalReads}, Earnings: ${totalEarning}`);
     
     return {
       totalViews: Math.round(totalViews),
       totalReads: Math.round(totalReads),
       totalEarning: totalEarning,
       debug: {
-        numberElementsCount: numberElements.length,
-        extractedNumbers: extractedNumbers.map(n => n.number),
-        dollarAmounts: dollarAmounts,
-        tableFound: !!tableElement,
-        foundSpecificNumbers: foundSpecificNumbers.length,
-        contextualElementsCount: contextualElements.length
+        tableFound: !!table,
+        tableRows: table ? table.querySelectorAll('tr').length : 0,
+        viewSpansFound: document.querySelectorAll('span.bf.b.md.mf.bk').length
       }
     };
   });
