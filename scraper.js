@@ -93,7 +93,7 @@ async function autoScroll(page) {
         
         if (cells.length >= 3) {
           // Based on debug analysis, find all spans with numbers in this row
-          const numberSpans = row.querySelectorAll('span.bf.b.md.mf.bk');
+          const numberSpans = row.querySelectorAll('span.bf.b.mn.mp.bk');
           console.log(`Row ${i}: Found ${numberSpans.length} number spans`);
           
           // Process each span with a number
@@ -142,7 +142,7 @@ async function autoScroll(page) {
       // Fallback: Look for all spans with the specific class
       console.log("Table not found, using fallback selectors");
       
-      const allSpans = document.querySelectorAll('span.bf.b.md.mf.bk');
+      const allSpans = document.querySelectorAll('span.bf.b.mn.mp.bk');
       console.log(`Found ${allSpans.length} spans with numbers`);
       
       // Group spans by their parent rows
@@ -214,7 +214,7 @@ async function autoScroll(page) {
       debug: {
         tableFound: !!table,
         tableRows: table ? table.querySelectorAll('tr').length : 0,
-        viewSpansFound: document.querySelectorAll('span.bf.b.md.mf.bk').length
+        viewSpansFound: document.querySelectorAll('span.bf.b.mn.mp.bk').length
       }
     };
   });
